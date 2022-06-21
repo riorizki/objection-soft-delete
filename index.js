@@ -1,18 +1,21 @@
-'use strict' // eslint-disable-line
+'use strict'; // eslint-disable-line
 
 module.exports = (incomingOptions) => {
-  const options = Object.assign({
-    columnName: 'deleted',
-    deletedValue: true,
-    notDeletedValue: false,
-  }, incomingOptions);
+  const options = Object.assign(
+    {
+      columnName: 'deleted',
+      deletedValue: true,
+      notDeletedValue: false
+    },
+    incomingOptions
+  );
 
   return (Model) => {
     class SDQueryBuilder extends Model.QueryBuilder {
       // override the normal delete function with one that patches the row's "deleted" column
       delete() {
-        this.mergeContext({
-          softDelete: true,
+        this.context({
+          softDelete: true
         });
         const patch = {};
         patch[options.columnName] = options.deletedValue;
@@ -26,8 +29,8 @@ module.exports = (incomingOptions) => {
 
       // provide a way to undo the delete
       undelete() {
-        this.mergeContext({
-          undelete: true,
+        this.context({
+          undelete: true
         });
         const patch = {};
         patch[options.columnName] = options.notDeletedValue;
@@ -37,15 +40,26 @@ module.exports = (incomingOptions) => {
       // provide a way to filter to ONLY deleted records without having to remember the column name
       whereDeleted() {
         // this if is for backwards compatibility, to protect those that used a nullable `deleted` field
-        if (options.deletedValue === true) { return this.where(`${this.modelClass().tableName}.${options.columnName}`, options.deletedValue); }
+        if (options.deletedValue === true) {
+          return this.where(
+            `${this.modelClass().tableName}.${options.columnName}`,
+            options.deletedValue
+          );
+        }
         // qualify the column name
-        return this.whereNot(`${this.modelClass().tableName}.${options.columnName}`, options.notDeletedValue);
+        return this.whereNot(
+          `${this.modelClass().tableName}.${options.columnName}`,
+          options.notDeletedValue
+        );
       }
 
       // provide a way to filter out deleted records without having to remember the column name
       whereNotDeleted() {
         // qualify the column name
-        return this.where(`${this.modelClass().tableName}.${options.columnName}`, options.notDeletedValue);
+        return this.where(
+          `${this.modelClass().tableName}.${options.columnName}`,
+          options.notDeletedValue
+        );
       }
     }
     return class extends Model {
@@ -62,7 +76,7 @@ module.exports = (incomingOptions) => {
           },
           deleted: (b) => {
             b.whereDeleted();
-          },
+          }
         });
       }
 
